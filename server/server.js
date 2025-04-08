@@ -44,6 +44,7 @@ app
   .use(logger())
   .use(parser.urlencoded({ extended: true }))
   .use("/", sirv("dist"))
+  .use("/static", sirv("static")) // Serve static images from the "static" directory
   .use(async (req, res, next) => {
     await getSession(req, res);
     next();
@@ -61,6 +62,30 @@ app.get("/", async (req, res) => {
         user: user,
       })
     );
+  } else {
+    res.redirect("/login");
+  }
+});
+
+app.get("/profile/:username", async (req, res) => {
+  if (req.session.visited) {
+    const username = req.params.username;
+    const user = await usersCollection.findOne(
+      { username: username },
+      {
+        projection: {
+          name: 1,
+          username: 1,
+          profilePic: 1,
+          status: 1,
+          lastSeen: 1,
+        },
+      }
+    );
+
+    console.log(user);
+
+    res.send(renderTemplate("server/views/profile.liquid", { user: user }));
   } else {
     res.redirect("/login");
   }

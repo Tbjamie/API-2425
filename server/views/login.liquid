@@ -1,0 +1,37 @@
+{% layout "server/layouts/base.liquid" %}
+
+{% block content %}
+    <section class="login-section auth-section">
+      <div>
+        <img src="/assets/images/omni-mockup.webp" alt="Omni Mockup">
+      </div>
+      <form action="/login" method="POST">
+        <h1>Sign In</h1>
+        <p>Start chatting in no time!</p>
+
+        <fieldset>
+          <label for="username">
+            Username
+            <input type="text" name="username" id="username" placeholder="john_doe123" required>
+          </label>
+
+          <label for="password">
+            Password
+            <input type="password" name="password" id="password" required>
+          </label>
+
+          {% if error %}
+            <p class="error-message">{{ error }}</p>
+          {% endif %}
+        </fieldset>
+
+        <button type="submit" class="submit-button">
+          Sign in
+        </button>
+
+        <p>Don't have an account yet? <a href="/register">Sign up</a></p>
+      </form>
+    </section>
+
+    {% endblock %}
+

@@ -1,0 +1,167 @@
+{% layout "server/layouts/base.liquid" %}
+
+{% block content %}
+  <div id="chat-page">
+    <section class="create-chat-modal">
+      <form action="/create" method="POST">
+        <div>
+          <h2>Start new chat</h2>
+          <button type="button" class="close-modal-button">
+            <svg
+              viewBox="0 0 384 512"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_437_14)">
+                <path d="M376.6 84.5C387.9 70.9 386.1 50.7 372.5 39.4C358.9 28.1 338.7 29.9 327.4 43.5L192 206L56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4C-2.10002 50.7 -3.90002 70.9 7.39998 84.5L150.3 256L7.39998 427.5C-3.90002 441.1 -2.10002 461.3 11.5 472.6C25.1 483.9 45.3 482.1 56.6 468.5L192 306L327.4 468.5C338.7 482.1 358.9 483.9 372.5 472.6C386.1 461.3 387.9 441.1 376.6 427.5L233.7 256L376.6 84.5Z" fill="currentColor" />
+              </g>
+              <defs>
+                <clipPath id="clip0_437_14">
+                  <rect
+                    width="384"
+                    height="512"
+                    fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
+
+          </button>
+        </div>
+        <select name="members" id="members">
+          {% for user in users %}
+            <option value="{{ user._id }}">{{ user.name }}</option>
+          {% endfor %}
+        </select>
+        <button class="create-chat-submit" type="submit">Create chat</button>
+      </form>
+
+    </section>
+    <section class="chat-list">
+      <article class="settings">
+        <a
+          href="/profile/{{ user.username }}"
+          class="account"
+          style="--vt: profile-pic-{{ user._id }}">
+          <img src="{{ user.profilePic }}" alt="{{ user.name }}'s profile picture" />
+        </a>
+
+        <button class="create-chat">
+          <svg
+            viewBox="0 0 504 505"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M217.324 1.5877C107.057 15.721 19.5903 93.8544 2.52361 193.188C-0.676386 211.988 -0.809719 240.121 1.99028 256.921C16.1236 338.121 93.7236 413.188 188.524 437.454C201.99 440.921 210.924 442.521 228.257 444.788L234.524 445.588L234.924 470.254L235.324 495.054L240.257 499.588C249.057 507.454 256.79 505.854 291.99 488.121C369.724 449.188 437.59 391.588 471.857 335.721C488.257 308.788 499.724 277.988 503.324 251.454C505.324 236.388 494.524 225.854 480.924 229.588C473.324 231.588 469.857 237.321 467.457 252.121C457.057 312.121 409.457 372.254 330.657 425.054C314.79 435.721 295.19 447.054 279.857 454.921L269.324 460.121V441.854C269.324 425.721 268.924 422.921 266.657 419.054C263.324 413.588 256.924 410.788 247.457 410.788C235.99 410.788 211.19 407.188 197.324 403.454C118.257 382.254 55.5903 325.588 38.7903 259.988C30.3903 227.454 35.9903 185.454 53.4569 150.521C63.0569 131.054 72.9236 117.721 90.5236 99.9877C126.79 63.8544 168.657 43.721 222.524 36.7877C241.057 34.3877 245.59 32.6544 249.324 26.3877C252.657 21.0544 252.657 15.4544 249.59 9.45437C244.924 0.787702 237.59 -1.07897 217.324 1.5877Z" fill="currentColor" />
+            <path d="M406.924 2.78767C399.457 7.32101 398.657 11.321 398.657 41.9877V69.1877L369.59 69.721L340.39 70.121L335.59 73.8543C324.524 82.2543 327.19 99.0543 340.39 103.988C342.657 104.921 355.324 105.454 371.457 105.454H398.657V133.054C398.657 163.588 399.457 167.054 407.057 172.654C411.724 176.121 420.657 176.121 425.724 172.788C433.19 167.854 433.99 164.788 434.39 133.721L434.79 105.454H462.124C482.79 105.454 490.524 105.054 493.99 103.588C506.39 98.3877 507.457 78.921 495.59 72.521C491.99 70.521 487.057 70.121 463.057 69.721L434.79 69.321L434.39 41.0543C433.99 14.521 433.857 12.521 431.057 7.98767C425.99 -0.14566 415.457 -2.41233 406.924 2.78767Z" fill="currentColor" />
+          </svg>
+        </button>
+
+        <a href="#" class="add-friends">
+          Add friends
+        </a>
+      </article>
+      <div class="chats">
+        {% for chat in chats %}
+          <article>
+            <a
+              href="/chat/{{ chat._id }}"
+              class="chat-link"
+              data-chat-id="{{ chat._id }}">
+              <div>
+                <h3>{{ chat.otherUser.name }}</h3>
+                <p>{{ chat.lastMessage.text }}</p>
+              </div>
+              <div class="unread-messages">
+                <p>3</p>
+              </div>
+            {% comment %} TODO: PUT THE NUMBER OF UNREAD MESSAGES HERE {% endcomment %}
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="current-chat">
+      <section class="chat-header">
+        <button class="back-button">
+          <svg
+            viewBox="0 0 13 23"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.5001 23C11.7291 23 11.9581 22.9126 12.1326 22.7381C12.482 22.389 12.482 21.8224 12.1326 21.4733L2.15952 11.4999L12.1326 1.52683C12.482 1.17748 12.482 0.611164 12.1326 0.261818C11.7833 -0.0872727 11.217 -0.0872727 10.8676 0.261818L0.26201 10.8674C-0.0873366 11.2165 -0.0873366 11.7831 0.26201 12.1322L10.8676 22.7378C11.0422 22.9126 11.2712 23 11.5001 23Z" fill="currentColor" />
+          </svg>
+        </button>
+
+        <a href="/profile/{{ currentChat.otherMember.username }}">
+          <div class="image-wrapper">
+            <img src="{{ currentChat.otherMember.profilePic }}" alt="{{ currentChat.otherMember.name }}'s profile picture" />
+          </div>
+
+          <div class="user-info">
+            <h1>{{ currentChat.otherMember.name }}</h1>
+            <p class="other-status">{{ currentChat.otherMember.status }}</p>
+          </div>
+        </a>
+      </section>
+
+      <section class="chat-messages">
+        {% comment %} <div class="scroll-container"> {% endcomment %}
+        {% for message in messages %}
+          {% if message.senderId == user._id %}
+            <article class="text-bubble own-message">
+              <p class="message">{{ message.text }}</p>
+            </article>
+          {% else %}
+            <article class="text-bubble other-message">
+              <p class="message">{{ message.text }}</p>
+            </article>
+          {% endif %}
+        {% endfor %}
+      {% comment %} </div> {% endcomment %}
+      </section>
+
+      <form
+        class="chat-form"
+        action="/chat/{{ currentChat._id }}"
+        method="POST">
+
+        <div class="chat-input-wrapper">
+          <button type="button" class="attachment-button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 448 512"
+              fill="currentColor">
+              <path d="M364.2 83.8c-24.4-24.4-64-24.4-88.4 0l-184 184c-42.1 42.1-42.1 110.3 0 152.4s110.3 42.1 152.4 0l152-152c10.9-10.9 28.7-10.9 39.6 0s10.9 28.7 0 39.6l-152 152c-64 64-167.6 64-231.6 0s-64-167.6 0-231.6l184-184c46.3-46.3 121.3-46.3 167.6 0s46.3 121.3 0 167.6l-176 176c-28.6 28.6-75 28.6-103.6 0s-28.6-75 0-103.6l144-144c10.9-10.9 28.7-10.9 39.6 0s10.9 28.7 0 39.6l-144 144c-6.7 6.7-6.7 17.7 0 24.4s17.7 6.7 24.4 0l176-176c24.4-24.4 24.4-64 0-88.4z" />
+            </svg>
+          </button>
+
+          <input
+            type="text"
+            name="chat-input"
+            id="chat-input"
+            placeholder="Type a message..." />
+
+          <button type="button" class="voice-button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 384 512"
+              fill="currentColor">
+              <path d="M192 0C139 0 96 43 96 96l0 160c0 53 43 96 96 96s96-43 96-96l0-160c0-53-43-96-96-96zM64 216c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40c0 89.1 66.2 162.7 152 174.4l0 33.6-48 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l72 0 72 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-48 0 0-33.6c85.8-11.7 152-85.3 152-174.4l0-40c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 40c0 70.7-57.3 128-128 128s-128-57.3-128-128l0-40z" /></svg>
+          </button>
+        </div>
+
+        <button type="submit" class="send-message-button">
+          <svg
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.2542 0.463949C17.5986 0.702536 17.7793 1.11495 17.7145 1.52736L15.5326 15.7062C15.4815 16.0369 15.2804 16.3266 14.9872 16.4902C14.694 16.6538 14.3428 16.6742 14.0326 16.5447L9.95527 14.8507L7.62001 17.3764C7.31659 17.707 6.83931 17.816 6.41999 17.6524C6.00067 17.4888 5.72793 17.0832 5.72793 16.6333V13.7839C5.72793 13.6476 5.77907 13.5181 5.87112 13.4158L11.5848 7.18528C11.7826 6.97056 11.7758 6.63994 11.5712 6.43544C11.3667 6.23094 11.036 6.2173 10.8212 6.41158L3.887 12.5705L0.876723 11.064C0.515353 10.8834 0.283532 10.5221 0.273304 10.1199C0.263077 9.71771 0.474444 9.34279 0.822176 9.1417L16.0951 0.416232C16.4599 0.20832 16.9099 0.228771 17.2542 0.463949Z" fill="currentColor" />
+          </svg>
+
+        </button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% comment %} TODO: 1. Zet nieuwste chats bovenaan 2. Update new message direct bij het sturen van een bericht 3. Zorg dat er een nieuwe chat aangemaakt kan worden.   {% endcomment %}
+
+{% comment %} TODO: INTERSECTION OBSERVER VOOR READ MESSAGES {% endcomment %}

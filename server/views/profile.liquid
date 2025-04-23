@@ -1,0 +1,23 @@
+{% layout "server/layouts/base.liquid" %}
+
+{% block content %}
+
+  <div id="profile">
+    <button class="back-button">
+      <svg
+        viewBox="0 0 13 23"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg">
+        <path d="M11.5001 23C11.7291 23 11.9581 22.9126 12.1326 22.7381C12.482 22.389 12.482 21.8224 12.1326 21.4733L2.15952 11.4999L12.1326 1.52683C12.482 1.17748 12.482 0.611164 12.1326 0.261818C11.7833 -0.0872727 11.217 -0.0872727 10.8676 0.261818L0.26201 10.8674C-0.0873366 11.2165 -0.0873366 11.7831 0.26201 12.1322L10.8676 22.7378C11.0422 22.9126 11.2712 23 11.5001 23Z" fill="currentColor" />
+      </svg>
+    </button>
+    <div class="profile-pic" style="--vt: profile-pic-{{ user._id }}">
+      <img src="{{ user.profilePic }}" alt="{{ user.name }}'s profile picture" />
+    </div>
+    <h1>{{ user.name }}</h1>
+    <p>@{{ user.username }}</p>
+
+    <p>{{ user.bio }}</p>
+  </div>
+
+{% endblock %}

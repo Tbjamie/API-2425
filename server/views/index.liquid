@@ -2,16 +2,120 @@
 
 {% block content %}
 
-<h1 class="h1">{{ title }}</h1>
+  <div id="home">
+    <section class="create-chat-modal">
+      <form action="/create" method="POST">
+        <div>
+          <h2>Start new chat</h2>
+          <button type="button" class="close-modal-button">
+            <svg
+              viewBox="0 0 384 512"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <g clip-path="url(#clip0_437_14)">
+                <path d="M376.6 84.5C387.9 70.9 386.1 50.7 372.5 39.4C358.9 28.1 338.7 29.9 327.4 43.5L192 206L56.6 43.5C45.3 29.9 25.1 28.1 11.5 39.4C-2.10002 50.7 -3.90002 70.9 7.39998 84.5L150.3 256L7.39998 427.5C-3.90002 441.1 -2.10002 461.3 11.5 472.6C25.1 483.9 45.3 482.1 56.6 468.5L192 306L327.4 468.5C338.7 482.1 358.9 483.9 372.5 472.6C386.1 461.3 387.9 441.1 376.6 427.5L233.7 256L376.6 84.5Z" fill="currentColor" />
+              </g>
+              <defs>
+                <clipPath id="clip0_437_14">
+                  <rect
+                    width="384"
+                    height="512"
+                    fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
 
-<ul class="grid">
-  {% for item in items %}
-    <li>
-      <a href="/plant/{{ item.id }}">
-        {% render 'server/components/card/card.liquid', item: item %}
-      </a>
-    </li>
-  {% endfor %}
-</ul>
+          </button>
+        </div>
+        <select name="members" id="members">
+          {% for user in users %}
+            <option value="{{ user._id }}">{{ user.name }}</option>
+          {% endfor %}
+        </select>
+        <button class="create-chat-submit" type="submit">Create chat</button>
+      </form>
+    </section>
+    <section>
+      <article class="settings">
+        <a
+          href="/profile/{{ user.username }}"
+          class="account"
+          style="--vt: profile-pic-{{ user._id }}">
+          <img src="{{ user.profilePic }}" alt="{{ user.name }}'s profile picture" />
+        </a>
+
+        <button class="create-chat">
+          <svg
+            viewBox="0 0 504 505"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path d="M217.324 1.5877C107.057 15.721 19.5903 93.8544 2.52361 193.188C-0.676386 211.988 -0.809719 240.121 1.99028 256.921C16.1236 338.121 93.7236 413.188 188.524 437.454C201.99 440.921 210.924 442.521 228.257 444.788L234.524 445.588L234.924 470.254L235.324 495.054L240.257 499.588C249.057 507.454 256.79 505.854 291.99 488.121C369.724 449.188 437.59 391.588 471.857 335.721C488.257 308.788 499.724 277.988 503.324 251.454C505.324 236.388 494.524 225.854 480.924 229.588C473.324 231.588 469.857 237.321 467.457 252.121C457.057 312.121 409.457 372.254 330.657 425.054C314.79 435.721 295.19 447.054 279.857 454.921L269.324 460.121V441.854C269.324 425.721 268.924 422.921 266.657 419.054C263.324 413.588 256.924 410.788 247.457 410.788C235.99 410.788 211.19 407.188 197.324 403.454C118.257 382.254 55.5903 325.588 38.7903 259.988C30.3903 227.454 35.9903 185.454 53.4569 150.521C63.0569 131.054 72.9236 117.721 90.5236 99.9877C126.79 63.8544 168.657 43.721 222.524 36.7877C241.057 34.3877 245.59 32.6544 249.324 26.3877C252.657 21.0544 252.657 15.4544 249.59 9.45437C244.924 0.787702 237.59 -1.07897 217.324 1.5877Z" fill="currentColor" />
+            <path d="M406.924 2.78767C399.457 7.32101 398.657 11.321 398.657 41.9877V69.1877L369.59 69.721L340.39 70.121L335.59 73.8543C324.524 82.2543 327.19 99.0543 340.39 103.988C342.657 104.921 355.324 105.454 371.457 105.454H398.657V133.054C398.657 163.588 399.457 167.054 407.057 172.654C411.724 176.121 420.657 176.121 425.724 172.788C433.19 167.854 433.99 164.788 434.39 133.721L434.79 105.454H462.124C482.79 105.454 490.524 105.054 493.99 103.588C506.39 98.3877 507.457 78.921 495.59 72.521C491.99 70.521 487.057 70.121 463.057 69.721L434.79 69.321L434.39 41.0543C433.99 14.521 433.857 12.521 431.057 7.98767C425.99 -0.14566 415.457 -2.41233 406.924 2.78767Z" fill="currentColor" />
+          </svg>
+        </button>
+
+        <a href="#" class="add-friends">
+          Add friends
+        </a>
+      </article>
+      <div class="chats">
+        {% for chat in chats %}
+          <article>
+            <a
+              href="/chat/{{ chat._id }}"
+              class="chat-link"
+              data-chat-id="{{ chat._id }}">
+              <div>
+                <h3>{{ chat.otherUser.name }}</h3>
+                <p data-message-date="{{ chat.lastMessage.timestamp }}">{{ chat.lastMessage.text }}</p>
+              </div>
+              <div class="unread-messages">
+                <p>3</p>
+              </div>
+            {% comment %} TODO: PUT THE NUMBER OF UNREAD MESSAGES HERE {% endcomment %}
+            </a>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const chatLinks = document.querySelectorAll('.chat-link');
+      const messageDates = document.querySelectorAll('[data-message-date]');
+
+      console.log('messageDates', messageDates);
+
+      // Create constants for each message date
+      messageDates.forEach((date) => {
+        const dateValue = date.getAttribute('data-message-date');
+        console.log(dateValue)
+      })
+
+      function handleChatLinks() {
+        if (window.innerWidth > 1024) {
+          if (chatLinks.length > 0) {
+            // chats.sort((a, b) => {
+            //   const timestampA = a.lastMessage?.timestamp || 0;
+            //   const timestampB = b.lastMessage?.timestamp || 0;
+            //   const recentChat = timestampB - timestampA;
+
+            //   console.log('recentChat', recentChat);
+            // });
+
+              const firstChatId = chatLinks[0].getAttribute('data-chat-id');
+              window.location.href = '/chat/' + firstChatId;
+          }
+        } else {
+          return;
+        }
+      }
+
+      handleChatLinks();
+
+      window.addEventListener('resize', handleChatLinks);
+    });
+  </script>
 
 {% endblock %}

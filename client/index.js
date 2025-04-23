@@ -1,4 +1,171 @@
 import "./index.css";
+const createChatButton = document.querySelector(".create-chat");
+const createChatModal = document.querySelector(".create-chat-modal");
+const createChatSubmitButton = document.querySelector(".create-chat-submit");
+const closeChatModalButton = document.querySelector(".close-modal-button");
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    fetch("/api/status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: "offline" }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("Status updated:", data))
+      .catch((err) => console.error("Error updating status:", err));
+  } else if (!document.hidden) {
+    fetch("/api/status", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: "online" }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log("Status updated:", data))
+      .catch((err) => console.error("Error updating status:", err));
+  } else {
+    if (window.innerWidth > 1024) {
+      let lastMouseMoveTime = Date.now();
+
+      const inactivityInterval = setInterval(() => {
+        if (Date.now() - lastMouseMoveTime > 60000) {
+          fetch("/api/status", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ status: "away" }),
+          })
+            .then((response) => response.json())
+            .then((data) => console.log("Status updated:", data))
+            .catch((err) => console.error("Error updating status:", err));
+        }
+      }, 10000);
+
+      document.addEventListener("mousemove", () => {
+        lastMouseMoveTime = Date.now();
+      });
+    }
+  }
+});
+
+// Connect to the status stream
+function connectToStatusStream() {
+  const statusEventSource = new EventSource("/api/status/stream");
+
+  // Handle connection established
+  statusEventSource.addEventListener("connected", (event) => {
+    console.log("Status stream connected:", event.data);
+  });
+
+  // Handle status updates
+  statusEventSource.addEventListener("statusUpdate", (event) => {
+    const statusData = JSON.parse(event.data);
+    console.log("Status update received:", statusData);
+
+    // Update the UI based on the status change
+    updateUserStatusInUI(statusData);
+  });
+
+  // Error handling
+  statusEventSource.onerror = (error) => {
+    console.error("Status stream error:", error);
+    statusEventSource.close();
+
+    // Reconnect after a delay
+    setTimeout(connectToStatusStream, 5000);
+  };
+
+  return statusEventSource;
+}
+
+// Update UI when a user's status changes
+function updateUserStatusInUI(userData) {
+  // Find all elements that show this user's status
+  const userStatusElement = document.querySelector(`.other-status`);
+
+  userStatusElement.textContent = userData.status;
+
+  // You could also update styling based on status
+  // Remove all status-related classes
+  element.classList.remove("status-online", "status-away", "status-busy");
+
+  // Add appropriate class based on status
+  if (userData.status === "online") {
+    element.classList.add("status-online");
+  } else if (userData.status === "away") {
+    element.classList.add("status-away");
+  } else if (userData.status === "busy") {
+    element.classList.add("status-busy");
+  }
+}
+
+// Start the connection when the page loads
+document.addEventListener("DOMContentLoaded", () => {
+  const statusStream = connectToStatusStream();
+
+  // Optionally store the stream in window to access it later
+  window.statusStream = statusStream;
+});
+
+if (closeChatModalButton) {
+  closeChatModalButton.addEventListener("click", () => {
+    createChatModal.style.display = "none";
+  });
+}
+
+if (createChatSubmitButton) {
+  createChatSubmitButton.addEventListener("click", () => {
+    createChatModal.style.display = "none";
+  });
+}
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    createChatModal.style.display = "none";
+  }
+});
+
+if (createChatButton) {
+  createChatButton.addEventListener("click", () => {
+    createChatModal.style.display = "flex";
+  });
+}
+
+document.addEventListener("navigate", (event) => {
+  if (!document.startViewTransition) {
+    return;
+  }
+
+  document.startViewTransition(() => {
+    window.location.href = event.detail.url;
+  });
+});
+
+const backButton = document.querySelector(".back-button");
+
+console.log(backButton);
+
+if (backButton) {
+  backButton.addEventListener("click", () => {
+    // document.documentElement.classList.add("popstate-back");
+    // setTimeout(() => {
+    window.history.back();
+    // }, 100);
+  });
+}
+
+window.addEventListener("popstate", async (event) => {
+  console.log(event);
+});
+
+// window.addEventListener("pagereveal", (event) => {
+//   console.log("REVEEEEAAAL");
+// });
 
 window.addEventListener("DOMContentLoaded", () => {
   if (location.pathname === "/register") {
@@ -31,6 +198,21 @@ window.addEventListener("DOMContentLoaded", () => {
     }, 100);
 
     submitButton.setAttribute("disabled", true);
+
+    if (
+      password.length < 8 ||
+      nameRegex.test(password) ||
+      !/[A-Z]/.test(password)
+    ) {
+      submitButton.setAttribute("disabled", true);
+    } else if (
+      inputFields[1].value.length < 1 ||
+      inputFields[2].value.length < 1
+    ) {
+      submitButton.setAttribute("disabled", true);
+    } else {
+      submitButton.removeAttribute("disabled", false);
+    }
 
     inputFields.forEach((input) => {
       input.addEventListener("input", () => {
@@ -85,6 +267,12 @@ window.addEventListener("DOMContentLoaded", () => {
 
     submitButton.setAttribute("disabled", true);
 
+    if (inputFields[0].value.length > 0 && inputFields[1].value.length > 0) {
+      submitButton.removeAttribute("disabled");
+    } else {
+      submitButton.setAttribute("disabled", true);
+    }
+
     inputFields.forEach((input) => {
       input.addEventListener("input", () => {
         if (
@@ -98,6 +286,108 @@ window.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+
+  if (location.pathname.includes("/chat")) {
+    const sendButton = document.querySelector(".send-message-button");
+    const chatBox = document.querySelector("#chat-input");
+    const chatMessages = document.querySelector(".chat-messages");
+    const chatForm = document.querySelector(".chat-form");
+    const voiceMessageButton = document.querySelector(".voice-button");
+
+    function recordVoiceMessage() {
+      const recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      // Visual feedback for recording state
+      voiceMessageButton.classList.add("recording");
+      chatBox.placeholder = "Listening...";
+
+      // Start recognition
+      recognition.start();
+
+      // Handle results
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0])
+          .map((result) => result.transcript)
+          .join("");
+
+        chatBox.value = transcript;
+        hideSendButton();
+      };
+
+      // Handle end of speech recognition
+      recognition.onend = () => {
+        voiceMessageButton.classList.remove("recording");
+        chatBox.placeholder = "Type a message...";
+      };
+
+      // Handle errors
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error", event.error);
+        voiceMessageButton.classList.remove("recording");
+        chatBox.placeholder = "Type a message...";
+      };
+    }
+
+    voiceMessageButton.addEventListener("click", () => {
+      recordVoiceMessage();
+    });
+
+    function hideSendButton() {
+      if (
+        chatBox.value === "" ||
+        chatBox.value === null ||
+        chatBox.value === undefined
+      ) {
+        sendButton.style.display = "none";
+        sendButton.setAttribute("disabled", true);
+      } else {
+        sendButton.style.display = "block";
+        sendButton.removeAttribute("disabled");
+      }
+    }
+
+    function scrollToLastMessage() {
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 75);
+    }
+
+    chatForm.addEventListener("submit", () => {
+      setTimeout(() => {
+        chatBox.value = "";
+        scrollToLastMessage();
+      }, 200);
+    });
+
+    scrollToLastMessage();
+
+    hideSendButton();
+
+    chatBox.addEventListener("input", () => {
+      hideSendButton();
+    });
+
+    const chatId = location.pathname.split("/").pop();
+    const evtSource = new EventSource(`http://localhost:3000/chat/stream`);
+
+    evtSource.onmessage = (event) => {
+      const newArticle = document.createElement("article");
+      const newPelement = document.createElement("p");
+      const data = JSON.parse(event.data);
+
+      newArticle.classList.add("text-bubble");
+      newArticle.classList.add("own-message");
+      newArticle.appendChild(newPelement);
+
+      newPelement.textContent = data.text;
+      chatMessages.appendChild(newArticle);
+    };
+  }
 });
 
-// TODO: Check is form is valid and disable button if not
+// FIXME: CHECK WHO SEND THE MESSAGE AND THEN GIVE STYLING
+// FIXME: MAKE IT MORE REALTIME
